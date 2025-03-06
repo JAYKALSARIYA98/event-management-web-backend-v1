@@ -1,6 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { signup, signin, forgotPassword, resetPassword } = require('./authController');
+const { signup, signin, forgotPassword, resetPassword, Whoiam } = require('./authController');
+const auth = require('../../middleware/auth');
 
 const router = express.Router();
 
@@ -27,5 +28,5 @@ router.post('/reset-password', [
   body('otp').isLength({ min: 6, max: 6 }),
   body('newPassword').isLength({ min: 6 })
 ], resetPassword);
-
+router.get('/whoami', auth, Whoiam)
 module.exports = router;

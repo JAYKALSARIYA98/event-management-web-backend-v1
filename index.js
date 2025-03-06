@@ -8,7 +8,13 @@ const eventRoutes = require('./src/routes/events/eventRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+      origin: [process.env.FRONTEND_URL, 'http://localhost:5173', "http://192.168.1.103:5173"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
+  })
+);
 app.use(express.json());
 
 // Routes
