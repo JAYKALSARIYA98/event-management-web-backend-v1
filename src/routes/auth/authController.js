@@ -16,7 +16,8 @@ exports.signup = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      // return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'User exist' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -98,7 +99,7 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     await OTP.create({
       email,
       otp
@@ -146,3 +147,19 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.Whoiam = async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token, authorization denied' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const role = decoded.role
+    res.json({ role: role })
+  } catch (e) {
+    console.error('error', error);
+  }
+
+}

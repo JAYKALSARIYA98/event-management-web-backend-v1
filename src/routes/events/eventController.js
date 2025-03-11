@@ -3,6 +3,8 @@ const Event = require('../../models/Event');
 const User = require('../../models/User'); // Import the User model
 
 exports.createEvent = async (req, res) => {
+  // console.log("Incoming Event Data:", req.body);
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -11,8 +13,7 @@ exports.createEvent = async (req, res) => {
 
     const eventData = {
       ...req.body,
-      organizerId: req.user.userId, // Link the event to the logged-in user
-      availableSeats: req.body.totalSeats
+      organizerId: req.user.userId,
     };
 
     const event = new Event(eventData);
@@ -29,52 +30,52 @@ exports.createEvent = async (req, res) => {
 };
 
 exports.updateEvent = async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const event = await Event.findById(req.params.id);
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
-  
-      // Ensure the logged-in user is the creator
-      if (event.organizerId.toString() !== req.user.userId) {
-        return res.status(403).json({ message: 'Not authorized to update this event' });
-      }
-  
-      // Handle totalSeats adjustment
-      if (req.body.totalSeats) {
-        const seatsDifference = req.body.totalSeats - event.totalSeats;
-        req.body.availableSeats = event.availableSeats + seatsDifference;
-      }
-  
-      // Validate that availableSeats doesn't go below 0
-      if (req.body.availableSeats < 0) {
-        return res.status(400).json({ message: 'Available seats cannot be negative' });
-      }
-  
-      // Update only the fields that are being modified
-      Object.keys(req.body).forEach(key => {
-        if (req.body[key]) {
-          event[key] = req.body[key];
-        }
-      });
-  
-      await event.save();
-  
-      res.json({
-        message: 'Event updated successfully',
-        event
-      });
-    } catch (error) {
-      console.error('Update event error:', error);
-      res.status(500).json({ message: 'Server error' });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-  };
-  
+
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Ensure the logged-in user is the creator
+    if (event.organizerId.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this event' });
+    }
+
+    // Handle totalSeats adjustment
+    if (req.body.totalSeats) {
+      const seatsDifference = req.body.totalSeats - event.totalSeats;
+      req.body.availableSeats = event.availableSeats + seatsDifference;
+    }
+
+    // Validate that availableSeats doesn't go below 0
+    if (req.body.availableSeats < 0) {
+      return res.status(400).json({ message: 'Available seats cannot be negative' });
+    }
+
+    // Update only the fields that are being modified
+    Object.keys(req.body).forEach(key => {
+      if (req.body[key]) {
+        event[key] = req.body[key];
+      }
+    });
+
+    await event.save();
+
+    res.json({
+      message: 'Event updated successfully',
+      event
+    });
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 exports.deleteEvent = async (req, res) => {
   try {
